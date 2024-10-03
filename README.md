@@ -5,7 +5,6 @@
 <ul>
     <li><a href="#features">Features</a></li>
     <li><a href="#functions">Functions</a></li>
-    <li><a href="#test-cases">Test Cases</a></li>
 </ul>
 
 <h2 id="features">Features</h2>
