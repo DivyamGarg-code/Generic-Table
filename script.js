@@ -167,14 +167,11 @@ var chemicalSuppliesData = [
     }
 ]
 var alertTimeout; // Variable to store the timeout ID
-var tempData = JSON.parse(JSON.stringify(chemicalSuppliesData));
+var tempData = JSON.parse(JSON.stringify(chemicalSuppliesData)); // Store the temperory data
 var currentSelectedIndex = -1;
-console.log("tempData>>>", tempData);
-// alert("Data Refreshed Successfully");
 var selectedIds = {}; // key -> object_id | value -> index at which it is present in the array
 var tableContent = document.getElementById("tableContent");
-
-let lastElement = null;
+let lastElement = null; // last selected column for sorting purpose
 
 function addRow() {
     // Create a new row object with default values and a unique ID
@@ -200,11 +197,10 @@ function addRow() {
 
 
 function saveData() {
-    console.log("Update Rows>>> selectedId's", selectedIds); //{id:index}
 
+    // Saving editable content if any
     Object.entries(selectedIds).forEach(([id, index]) => {
         if (!tempData[index]['isEditable']) {
-            console.log("return>>>");
             return;
         }
         // Get the editable content using the table row and index
@@ -225,8 +221,6 @@ function saveData() {
 
             // After saving, deleting 'isEditable' so the row is no longer editable
             delete tempData[index].isEditable;
-
-            console.log("Updated Row Data:", tempData[index]);
         }
     });
 
@@ -246,17 +240,14 @@ function editRow() {
     if (Object.keys(selectedIds).length === 0) {
         return;
     }
-    console.log("Edit Rows>>> selectedId's", selectedIds); //{id:index}
     var lock = 0;
     var exitFunction = 0;
     Object.entries(selectedIds).forEach(([key, value]) => {
-
         // case when we've already selected editable rows and made some changes, now again we want to edit some other selected rows for that to give an alert that previous changes would be removed if proceed further 
         if (tempData[value].hasOwnProperty('isEditable') && lock === 0) {
             if (confirm('Unsaved Changes will be removed') === true) {
                 lock = 1;
             } else {
-                console.log("Unsaved Changes will be removed False case");
                 exitFunction = 1;
                 lock = 1;
                 return;
@@ -265,27 +256,23 @@ function editRow() {
         if (exitFunction === 1) {
             return;
         }
-        console.log("Edit obj->", tempData[value]);
         tempData[value]['isEditable'] = true;
-        console.log("After Updation->", tempData[value]);
     })
     if (exitFunction === 1) {
         return;
     }
-    console.log("Outside Edit>>>>>");
     getData(tempData, 'Content is made editable', true);
 }
+
 function changeRowPosition(pos) {
-    console.log("change Row position -> selectedId's>>>", selectedIds);
     var currIndex;
     var selectedRowsLength = Object.keys(selectedIds).length;
+
     if (selectedRowsLength != 1) {
         alert("Please Select 1 row");
-        console.log("return");
         return;
     } else {
         currIndex = Object.values(selectedIds)[0];
-        console.log("selectedIds value", currIndex, typeof currIndex);
     }
 
     // Reset the sorted data------------
@@ -296,41 +283,36 @@ function changeRowPosition(pos) {
     //-------------------------------------------------------
 
     var swapIndex;
-    //var currIndex =parseInt(currentSelectedIndex);
-    console.log("currIndex>>>", currIndex, typeof currIndex);
+
     if (pos === 'down') {
         swapIndex = currIndex + 1;
-        console.log('d');
     } else {
         swapIndex = currIndex - 1;
-        console.log('u');
     }
-    console.log("swapIndex>>>", swapIndex, typeof swapIndex);
+
     if (swapIndex === -1 || swapIndex === tempData.length) {
         return;
     }
     swapRow(swapIndex, currIndex);
-
 }
 
 function swapRow(swapIndex, currIndex) {
-    console.log("Data Swapped");
     var temp = tempData[swapIndex];
     tempData[swapIndex] = tempData[currIndex];
     tempData[currIndex] = temp;
     // Now currIndex points to swapIndex
     currentSelectedIndex = swapIndex;
-    console.log("new Current Index>>>", currentSelectedIndex, typeof currentSelectedIndex);
     getData(tempData);
 
 }
+
 function deleteRows() {
     var selectedRowsLength = Object.keys(selectedIds).length;
     if (selectedRowsLength === 0) {
         alert("No Row Selected");
         return;
     }
-    console.log("selectedId's for deletion>>>", selectedIds);
+
     var deletedRows = tempData.filter((item) => {
         return (selectedIds.hasOwnProperty(item.id));
     });
@@ -345,20 +327,16 @@ function deleteRows() {
     selectedIds = {};
     getData(tempData, `${deletedRows.length} ${deletedRows.length === 1 ? 'Row' : 'Rows'} Deleted Successfully`, true);
 }
+
 function selectRow(event) {
     const clickedRow = event.currentTarget;
     var key = clickedRow.getAttribute('_id'); // id of the selected row
     var currentSelectedIndex = parseInt(clickedRow.getAttribute('index'));
 
     if (tempData[currentSelectedIndex]['isEditable']) { // no toggling for editable content
-        console.log("no toggling");
         return;
     }
-
-    console.log("Funtion is clicked", event.currentTarget);
-    console.log('selected element>>>', tempData[currentSelectedIndex]);
-    console.log("Id>>>", key);
-
+    
     clickedRow.classList.toggle('row_selected');
 
     if (!selectedIds.hasOwnProperty(key)) {
@@ -373,7 +351,6 @@ function selectRow(event) {
     if (Object.keys(selectedIds).length === 0) {
         currentSelectedIndex = -1;
     }
-    console.log("selectedIds>>>", selectedIds);
 }
 
 function changeOrder(event) {
@@ -382,13 +359,12 @@ function changeOrder(event) {
         lastElement.removeAttribute('order'); // Remove the 'order' attribute from the previous column selected for sorting
         lastElement.querySelector('.arrow').innerHTML = ''; // Reset the arrow content for the previous column
     }
-    console.log(event.currentTarget);
+
     // Get the current 'order' attribute value
     let orderValue = element.getAttribute('order');
     let key = element.getAttribute('key'); // get the column name for sorting purpose
     const arrowSpan = element.querySelector('.arrow');
-    console.log('order Value>>>', orderValue);
-    console.log('Key>>>', key);
+
     if (orderValue === '0') {
         element.setAttribute('order', '1');
         arrowSpan.innerHTML = '&#8593;'; // Change the text of the last span to an upward arrow (descending order)
@@ -398,6 +374,7 @@ function changeOrder(event) {
         arrowSpan.innerHTML = '&#8595;'; // Change the text of the last span to a downward arrow (ascending order)
         tempData = customSort(tempData, key, 0); //Sort the data in asc order
     }
+
     getData(tempData);
     lastElement = element;
 }
@@ -436,16 +413,12 @@ function customSort(data, key, order) {
     });
 }
 
-function findUpdatedIndex() {
-
-}
 function getData(data, msg, showMsg) {
     var tableHtmlChunk = ``;
     data.forEach((item, index) => {
         if (selectedIds.hasOwnProperty(item.id)) {
             selectedIds[item.id] = index;
             currentSelectedIndex = index;
-            console.log("get Data currentSelectedIndex>>>", currentSelectedIndex);
         }
         tableHtmlChunk += `<tr class="row ${selectedIds.hasOwnProperty(item.id) ? 'row_selected' : ''} ${item.isEditable ? 'row_editable' : ''}" index=${index} _id=${item.id} onclick="selectRow(event)">
                             <td>${index}</td>
@@ -485,4 +458,5 @@ function refreshData() {
     var msg = "Data Refreshed Successfully";
     getData(tempData, msg, true);
 }
+
 getData(tempData);
